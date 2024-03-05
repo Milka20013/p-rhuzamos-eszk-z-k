@@ -1,11 +1,9 @@
-__kernel void hello_kernel(__global int *buffer, int n)
-{
-   if (get_global_id(0) % 2 == 0)
-   {
-          buffer[get_global_id(0)] = 11;
-   }
-   else
-   {
-          buffer[get_global_id(0)] = 22;
-   }
+__kernel void hello_kernel(__global float *a, __global float *b,
+                           __global float *c, int n) {
+  int i = get_global_id(0);
+  int j = get_global_id(1);
+  printf(" (%d / %d) ", i, j);
+  for (int k = 0; k < n; k++) {
+    c[i + k * j] = a[i + k * j] + b[i + k * j];
+  }
 }
