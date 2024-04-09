@@ -39,10 +39,10 @@ int main(void)
     time_spent = (double)(end - start) / CLOCKS_PER_SEC;
     printf("\nProgram Execution time is: %0.3lf seconds or %0.3lf milliseconds\n", time_spent, time_spent * 1000);
     */
-    for (int i = 0; i < n + k; i++)
+    /*for (int i = 0; i < n + k; i++)
     {
         printf("%d", result[i]);
-    }
+    }*/
 }
 
 void multiply(int *aArr, int *bArr, int n, int k, int *result)
@@ -84,39 +84,27 @@ void multiply(int *aArr, int *bArr, int n, int k, int *result)
 
 void multiply4(int *aArr, int *bArr, int n, int k, int *result)
 {
-    int subResults[k][n];
+    int subResults[k][n + 1];
     int tmp;
     int digits;
     int carry = 0;
-    int billionRemainder;
+    int tenThousandRem;
 
     for (int i = 0; i < k; i++)
     {
-        for (int j = 0; j < n; j++)
+        for (int j = 0; j < n + 1; j++)
         {
             subResults[i][j] = 0;
         }
-
-        digits = bArr[i];
-        tmp = aArr[n - 1] * digits + carry;
-        billionRemainder = tmp % 100000000;
-        subResults[i][n - 1] = billionRemainder;
-        for (int j = n - 2; j >= 0; j--)
+        digits = aArr[i];
+        for (int j = n; j >= 1; j--)
         {
-            tmp = aArr[j] * digits + carry;
-            billionRemainder = tmp % 100000000;
-            subResults[i][j] = subResults[i][j] / 10 + billionRemainder;
-            printf(" %d %d ", tmp, billionRemainder);
-            carry = (tmp - billionRemainder) / 100000000;
+            tmp = aArr[j - 1] * digits + carry;
+            tenThousandRem = tmp % 10000;
+            subResults[i][j] = tenThousandRem;
+            carry = (tmp - tenThousandRem) / 10000;
+            subResults[i][j - 1] = carry;
         }
-    }
-    for (int i = 0; i < k; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            printf("%d", subResults[i][j]);
-        }
-        printf("\n");
     }
     addSubResults8(k, n + k, subResults, result);
 }
