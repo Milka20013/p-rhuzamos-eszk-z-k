@@ -3,7 +3,7 @@
 void multiply(int *aArr, int *bArr, int n, int k, int *result);
 void multiply4(int *aArr, int *bArr, int n, int k, int *result);
 void addSubResults(int col, int row, int subResults[col][row], int *result);
-void addSubResults8(int col, int row, int subResults[col][row], int *result);
+void addSubResults4(int col, int row, int subResults[col][row], int *result);
 int concatenate(int x, int y);
 
 int main(void)
@@ -106,7 +106,7 @@ void multiply4(int *aArr, int *bArr, int n, int k, int *result)
             subResults[i][j - 1] = carry;
         }
     }
-    addSubResults8(k, n + k, subResults, result);
+    addSubResults4(k, n + k, subResults, result);
 }
 
 void addSubResults(int col, int row, int subResults[col][row], int *result)
@@ -128,20 +128,26 @@ void addSubResults(int col, int row, int subResults[col][row], int *result)
     }
 }
 
-void addSubResults8(int col, int row, int subResults[col][row], int *result)
+void addSubResults4(int row, int col, int subResults[row][col], int *result)
 {
     int tmp = 0;
     int carry = 0;
-    int billionRemainder;
-    for (int i = row - 1; i >= 0; i--)
+    int tenThousandRem;
+    printf(" %d %d", row, col);
+    printf("\n");
+    for (int i = col + col - 2; i >= 0; i--)
     {
-        for (int j = 1; j < col; j++)
+        tmp = carry;
+        for (int j = row - 1; j >= 0; j--)
         {
-            tmp = subResults[j][i] + (subResults[j][i - 1] / 10) + carry;
-            billionRemainder = tmp % 1000000000;
-            result[i] = billionRemainder;
-            carry = (tmp - billionRemainder) / 1000000000;
+            int add = i - j > col - 1 ? 0 : subResults[j][i - j];
+            tmp += add;
+            printf(" %d ", i - j);
         }
+        tenThousandRem = tmp % 10000;
+        // printf(" %d ", tenThousandRem);
+        //  result[i] = tenThousandRem;
+        carry = (tmp - tenThousandRem) / 10000;
     }
 }
 
