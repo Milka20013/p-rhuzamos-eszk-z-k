@@ -13,13 +13,11 @@ int main(void)
     int aArr[] = {5, 6, 1, 6, 1, 2, 3, 4};
     int bArr[] = {7, 2, 4, 5, 1, 2, 3, 4};
     int result[n + k];
-    long a = 123456789;
-    long b = 123456789;*/
-
+    multiply(aArr,bArr,n,k,result);*/
     int n = 2;
     int k = 2;
-    int aArr[] = {9999, 9999};
-    int bArr[] = {9999, 9999};
+    int aArr[] = {6160,343};
+    int bArr[] = {7245, 1234};
     int result[n + k];
     multiply4(aArr, bArr, n, k, result);
     /*clock_t start = clock();
@@ -29,20 +27,11 @@ int main(void)
     }
     clock_t end = clock();
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("\nProgram Execution time is: %0.3lf seconds or %0.3lf milliseconds", time_spent, time_spent * 1000);
-    start = clock();
-    for (int i = 0; i < 1; i++)
+    printf("\nProgram Execution time is: %0.3lf seconds or %0.3lf milliseconds\n", time_spent, time_spent * 1000);*/
+    for (int i = 0; i < n + k; i++)
     {
-        int c = a * b;
+        printf(" %d ", result[i]);
     }
-    end = clock();
-    time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("\nProgram Execution time is: %0.3lf seconds or %0.3lf milliseconds\n", time_spent, time_spent * 1000);
-    */
-    /*for (int i = 0; i < n + k; i++)
-    {
-        printf("%d", result[i]);
-    }*/
 }
 
 void multiply(int *aArr, int *bArr, int n, int k, int *result)
@@ -96,17 +85,26 @@ void multiply4(int *aArr, int *bArr, int n, int k, int *result)
         {
             subResults[i][j] = 0;
         }
-        digits = aArr[i];
+        digits = bArr[i];
         for (int j = n; j >= 1; j--)
         {
-            tmp = aArr[j - 1] * digits + carry;
+            tmp = aArr[j - 1] * digits + subResults[i][j];
             tenThousandRem = tmp % 10000;
             subResults[i][j] = tenThousandRem;
             carry = (tmp - tenThousandRem) / 10000;
             subResults[i][j - 1] = carry;
         }
+        carry = 0;
     }
-    addSubResults4(k, n + k, subResults, result);
+    for (int i = 0; i < k; i++)
+    {
+        for (int j = 0; j < n + 1; j++)
+        {
+            printf(" %d ", subResults[i][j]);
+        }
+        printf("\n");
+    }
+    addSubResults4(k, n + 1, subResults, result);
 }
 
 void addSubResults(int col, int row, int subResults[col][row], int *result)
@@ -133,20 +131,19 @@ void addSubResults4(int row, int col, int subResults[row][col], int *result)
     int tmp = 0;
     int carry = 0;
     int tenThousandRem;
-    printf(" %d %d", row, col);
-    printf("\n");
+    /*printf(" %d %d", row, col);
+    printf("\n");*/
     for (int i = col + col - 2; i >= 0; i--)
     {
         tmp = carry;
         for (int j = row - 1; j >= 0; j--)
         {
-            int add = i - j > col - 1 ? 0 : subResults[j][i - j];
+            int add = (i - j > col - 1) || (i-j < 0) ? 0 : subResults[j][i - j];
             tmp += add;
-            printf(" %d ", i - j);
         }
         tenThousandRem = tmp % 10000;
-        // printf(" %d ", tenThousandRem);
-        //  result[i] = tenThousandRem;
+        //printf(" %d ", tenThousandRem);
+        result[i] = tenThousandRem;
         carry = (tmp - tenThousandRem) / 10000;
     }
 }
