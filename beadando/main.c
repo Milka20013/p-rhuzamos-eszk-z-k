@@ -1,5 +1,7 @@
 #include "utils/include/file_utils.h"
 #include "utils/include/matrix_utils.h"
+#include "utils/include/bigint_utils.h"
+#include "utils/include/cl_utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,82 +92,62 @@ int main(void)
     //----
     //----
     // Create the host buffer and initialize it
-    unsigned N = 64;
-    MatrixF matrix1 = create_matrix(N, N);
-    MatrixF matrix2 = create_matrix(N, N);
-    MatrixF resultMatrix = create_matrix(N, N);
-    float *element;
-    for (int i = 0; i < N; i++)
+    const int length_int = 1;
+    const int length_long_long = 9;
+    const int length_str = 8;
+    unsigned char *number_str = generate_random_digits(length_str, 0);
+    for (int i = 0; i < length_str; i++)
     {
-        for (int j = 0; j < N; j++)
-        {
-            element = get_matrix_element(&matrix1, i, j);
-            (*element) = (i + 1) * (j + 1) * 0 + 1;
-            element = get_matrix_element(&matrix2, i, j);
-            (*element) = (i + 1) * (j + 1) * 0 + 1;
-        }
+        printf("%c", number_str[i]);
     }
-    // Create the device buffer
-    cl_mem device_a = clCreateBuffer(context, CL_MEM_READ_WRITE, N * N * sizeof(float), NULL, NULL);
-    cl_mem device_b = clCreateBuffer(context, CL_MEM_READ_WRITE, N * N * sizeof(float), NULL, NULL);
-    cl_mem device_c = clCreateBuffer(context, CL_MEM_READ_WRITE, N * N * sizeof(float), NULL, NULL);
-    cl_mem device_n = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(int), NULL, NULL);
 
-    // Set kernel arguments
-    clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&device_a);
-    clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&device_b);
-    clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&device_c);
-    clSetKernelArg(kernel, 3, sizeof(int), (void *)&N);
+    int a;
+    int *aArr = create_int_array_n_from_str(number_str, length_int, &a);
+    int b;
+    int *bArr = create_int_array_n_from_str(number_str, length_int, &b);
+    int result[a + b];
 
-    // Create the command queue
+    int *subResults = (int *)malloc(a * (a + b) * sizeof(int));
+    if (subResults == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed dum dum\n");
+        exit(1);
+    }
+
+    int *carries_device = (int *)malloc((a + b) * sizeof(int));
+    if (carries_device == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed dum dum2\n");
+        exit(1);
+    }
     cl_command_queue command_queue = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, NULL);
-    // Host buffer -> Device buffer
-    error = clEnqueueWriteBuffer(
-        command_queue,
-        device_a,
-        CL_FALSE,
-        0,
-        N * N * sizeof(float),
-        matrix1.data,
-        0,
-        NULL,
-        NULL);
-    error = clEnqueueWriteBuffer(
-        command_queue,
-        device_b,
-        CL_FALSE,
-        0,
-        N * N * sizeof(float),
-        matrix2.data,
-        0,
-        NULL,
-        NULL);
-    error = clEnqueueWriteBuffer(
-        command_queue,
-        device_c,
-        CL_FALSE,
-        0,
-        N * N * sizeof(float),
-        matrix2.data,
-        0,
-        NULL,
-        NULL);
-    if (error != CL_SUCCESS)
-    {
-        printf("%d a", error);
-        return 0;
-    }
+    set_int_array_as_param(context, kernel, command_queue, aArr, a, 0);
+    set_int_array_as_param(context, kernel, command_queue, bArr, b, 1);
+    cl_mem device_result = set_int_array_as_param(context, kernel, command_queue, result, a + b, 2);
+
+    cl_mem subresults = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int) * a * (a + b), NULL, &err);
+    clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&subresults);
+
+    cl_mem carries = set_int_array_as_param(context, kernel, command_queue, carries_device, a + b, 4);
+
+    cl_mem a_mem = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, &err);
+    clSetKernelArg(kernel, 5, sizeof(a_mem), (void *)&a);
+
+    cl_mem b_mem = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, &err);
+    clSetKernelArg(kernel, 6, sizeof(b_mem), (void *)&b);
+
+    // set_int_array_as_param(context, kernel, command_queue, n_as_arr, 1, 3);
 
     // Size specification
-    size_t local_work_size[] = {N, N};
-    size_t global_work_size[] = {N * 16, N * 16};
+    size_t local_work_size[] = {b};
+    size_t global_work_size[] = {b};
 
     // Apply the kernel on the range
     cl_event event;
     error = clEnqueueNDRangeKernel(
         command_queue,
         kernel,
-        2,
+        1,
         NULL,
         global_work_size,
         NULL,
@@ -182,11 +164,21 @@ int main(void)
     // Host buffer <- Device buffer
     error = clEnqueueReadBuffer(
         command_queue,
-        device_c,
+        carries,
         CL_TRUE,
         0,
-        N * N * sizeof(float),
-        resultMatrix.data,
+        sizeof(int) * b,
+        carries_device,
+        0,
+        NULL,
+        NULL);
+    error = clEnqueueReadBuffer(
+        command_queue,
+        device_result,
+        CL_TRUE,
+        0,
+        sizeof(int) * (a + b),
+        result,
         0,
         NULL,
         NULL);
@@ -195,8 +187,15 @@ int main(void)
         printf("%d asd", error);
         return 0;
     }
-
-    print_matrix(&resultMatrix);
+    for (int i = 0; i < a + b; i++)
+    {
+        printf(" %d ", carries_device[i]);
+    }
+    printf("\n");
+    for (int i = 0; i < a + b; i++)
+    {
+        printf(" %d ", result[i]);
+    }
 
     //----
     //----
@@ -216,10 +215,6 @@ int main(void)
     clReleaseProgram(program);
     clReleaseContext(context);
     clReleaseDevice(device_id);
-
-    delete_matrix(&matrix1);
-    delete_matrix(&matrix2);
-    delete_matrix(&resultMatrix);
 
     clock_t end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;

@@ -1,4 +1,4 @@
-#include "include/matrix_utils.h"
+#include "../include/matrix_utils.h"
 
 MatrixF create_matrix(unsigned M, unsigned N)
 {

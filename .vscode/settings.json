@@ -1,0 +1,11 @@
+{
+  "files.associations": {
+    "string_utils.h": "c",
+    "time.h": "c",
+    "matrix_utils.h": "c",
+    "stdio.h": "c",
+    "bigint_utils.h": "c",
+    "algorithm": "c",
+    "cl.h": "c"
+  }
+}
