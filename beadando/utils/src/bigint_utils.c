@@ -96,14 +96,14 @@ void multiply_int_n_big_nums(int *aArr, int *bArr, int a, int b, int n, int *res
         }
         carry = 0;
     }
-    for (int i = 0; i < b; i++)
+    /*for (int i = 0; i < b; i++)
     {
         for (int j = 0; j < a + 1; j++)
         {
             printf(" %d ", subresults[i][j]);
         }
         printf("\n");
-    }
+    }*/
     add_int_n_subresults(b, a + 1, n, subresults, result);
 }
 

@@ -5,15 +5,17 @@
 
 int main(void)
 {
-    const int length_int = 1;
+    const int length_int = 4;
     const int length_long_long = 9;
-    const int length_str = 8;
+    int length_str = 10000;
+    int samples = 3;
+
     unsigned char *str = generate_random_digits(length_str, 0);
-    for (int i = 0; i < length_str; i++)
+    /*for (int i = 0; i < length_str; i++)
     {
         printf("%c", str[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
     int n;
     int *aArr = create_int_array_n_from_str(str, length_int, &n);
@@ -28,18 +30,29 @@ int main(void)
     long long resultL[ln + lk];
 
     clock_t start = clock();
-
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < samples; i++)
     {
-        multiply_int_big_nums(aArr, bArr, n, k, result);
-        // multiply_int_n_big_nums(aArr, bArr, n, k, length_int, result);
-        // multiply_long_long_n_big_nums(lAarr, lBarr, ln, lk, length_long_long, resultL);
+        // multiply_int_big_nums(aArr, bArr, n, k, result);
     }
     clock_t end = clock();
-    double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("\nProgram Execution time is: %0.3lf seconds or %0.3lf milliseconds\n", time_spent, time_spent * 1000);
-    for (int i = 0; i < ln + lk; i++)
+    double time_spent = (double)((double)(end - start) / CLOCKS_PER_SEC) / samples;
+    printf("\nNaiv Execution time is: %0.3lf seconds or %0.3lf milliseconds\n", time_spent, time_spent * 1000);
+
+    start = clock();
+    for (int i = 0; i < samples; i++)
     {
-        printf(" %d ", resultL[i]);
+        multiply_int_n_big_nums(aArr, bArr, n, k, length_int, result);
     }
+    end = clock();
+    time_spent = (double)((double)(end - start) / CLOCKS_PER_SEC) / samples;
+    printf("\nN=1 Execution time is: %0.3lf seconds or %0.3lf milliseconds\n", time_spent, time_spent * 1000);
+
+    start = clock();
+    for (int i = 0; i < samples; i++)
+    {
+        // multiply_long_long_n_big_nums(lAarr, lBarr, ln, lk, length_long_long, resultL);
+    }
+    end = clock();
+    time_spent = (double)((double)(end - start) / CLOCKS_PER_SEC) / samples;
+    printf("\nN=9 Execution time is: %0.3lf seconds or %0.3lf milliseconds\n", time_spent, time_spent * 1000);
 }
