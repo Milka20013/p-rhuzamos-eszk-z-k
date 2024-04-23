@@ -5,9 +5,9 @@
 
 int main(void)
 {
-    const int length_int = 4;
+    const int length_int = 1;
     const int length_long_long = 9;
-    const int length_str = 2048;
+    const int length_str = 8;
     unsigned char *str = generate_random_digits(length_str, 0);
     for (int i = 0; i < length_str; i++)
     {

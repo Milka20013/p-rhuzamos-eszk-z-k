@@ -94,18 +94,20 @@ int main(void)
     // Create the host buffer and initialize it
     const int length_int = 1;
     const int length_long_long = 9;
-    const int length_str = 8;
+    const int length_str = 800;
     unsigned char *number_str = generate_random_digits(length_str, 0);
-    for (int i = 0; i < length_str; i++)
+    /*for (int i = 0; i < length_str; i++)
     {
         printf("%c", number_str[i]);
-    }
+    }*/
 
     int a;
     int *aArr = create_int_array_n_from_str(number_str, length_int, &a);
     int b;
     int *bArr = create_int_array_n_from_str(number_str, length_int, &b);
-    int result[a + b];
+    free(number_str);
+
+    int *result = malloc(sizeof(int) * (a + b));
 
     int *subResults = (int *)malloc(a * (a + b) * sizeof(int));
     if (subResults == NULL)
@@ -120,6 +122,9 @@ int main(void)
         fprintf(stderr, "Memory allocation failed dum dum2\n");
         exit(1);
     }
+    // program begins here
+    begin = clock();
+
     cl_command_queue command_queue = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, NULL);
     set_int_array_as_param(context, kernel, command_queue, aArr, a, 0);
     set_int_array_as_param(context, kernel, command_queue, bArr, b, 1);
@@ -167,7 +172,7 @@ int main(void)
         carries,
         CL_TRUE,
         0,
-        sizeof(int) * b,
+        sizeof(int) * (a + b),
         carries_device,
         0,
         NULL,
@@ -182,20 +187,44 @@ int main(void)
         0,
         NULL,
         NULL);
+    error = clEnqueueReadBuffer(
+        command_queue,
+        subresults,
+        CL_TRUE,
+        0,
+        sizeof(int) * a * (a + b),
+        subResults,
+        0,
+        NULL,
+        NULL);
     if (error != CL_SUCCESS)
     {
         printf("%d asd", error);
         return 0;
     }
+    /*printf("\n carries: ");
     for (int i = 0; i < a + b; i++)
     {
         printf(" %d ", carries_device[i]);
+    }*/
+
+    int tmp = 0;
+    int carry = 0;
+    int tenRemainder = 0;
+    for (int i = a + b - 2; i >= 1; i--)
+    {
+        tmp = result[i] + carries_device[i + 1];
+        tenRemainder = tmp % 10;
+        result[i] = tenRemainder;
+        carry = (tmp - tenRemainder) / 10;
+        carries_device[i] += carry;
     }
-    printf("\n");
+
+    /*printf("\n results: ");
     for (int i = 0; i < a + b; i++)
     {
         printf(" %d ", result[i]);
-    }
+    }*/
 
     //----
     //----
@@ -218,5 +247,17 @@ int main(void)
 
     clock_t end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("\nProgram Execution time is: %0.3lf seconds or %0.3lf milliseconds", time_spent, time_spent * 1000);
+    printf("Program Execution time is: %0.3lf seconds or %0.3lf milliseconds\n", time_spent, time_spent * 1000);
+
+    begin = clock();
+    multiply_int_big_nums(aArr, bArr, a, b, result);
+    end = clock();
+
+    free(aArr);
+    free(bArr);
+    free(result);
+    free(subResults);
+
+    time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Sequential Execution time is: %0.3lf seconds or %0.3lf milliseconds\n", time_spent, time_spent * 1000);
 }

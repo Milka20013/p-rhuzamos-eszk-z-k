@@ -10,11 +10,21 @@ __kernel void hello_kernel(__global int *aArr, __global int *bArr,
   for (int j = a - 1; j >= 0; j--) {
     tmp = aArr[j] * digit + carry;
     tenRemainder = tmp % 10;
-    subresults[i * a + j] = tenRemainder;
+    subresults[i * (a + b) + j + i + 1] = tenRemainder;
     carry = (tmp - tenRemainder) / 10;
   }
-  subresults[i * a] = carry;
+  subresults[i * (a + b) + i] = carry;
 
-  carries[i] = 0;
-  result[i] = 0;
+  for (int j = 0; j < 2; j++) {
+    tmp = 0;
+    carry = 0;
+    i = get_global_id(0) + j * a;
+    for (int k = 0; k < a; k++) {
+      tmp += subresults[k * (a + b) + i];
+    }
+    tenRemainder = tmp % 10;
+    result[i] = tenRemainder;
+    carry = (tmp - tenRemainder) / 10;
+    carries[i] = carry;
+  }
 }
