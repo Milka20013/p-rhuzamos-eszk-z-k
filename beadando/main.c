@@ -94,7 +94,8 @@ int main(void)
     // Create the host buffer and initialize it
     const int length_int = 1;
     const int length_long_long = 9;
-    const int length_str = 800;
+    const int length_str = 8192;
+
     unsigned char *number_str = generate_random_digits(length_str, 0);
     /*for (int i = 0; i < length_str; i++)
     {
